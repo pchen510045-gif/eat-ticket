@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可愛吃饗券</title>
+
+<!-- PWA 設定 -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="吃饗券">
+<meta name="theme-color" content="#ff85a1">
+
+<style>
+body { 
+    font-family: 'Hiragino Kaku Gothic ProN', 'Microsoft JhengHei', sans-serif; 
+    background-color: #fdf2f4; 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    color: #5d5d5d;
+}
+h1 { 
+    color: #ff85a1;
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 0px white, 2px 2px 0px rgba(255,133,161,0.2);
+}
+.container { width: 100%; max-width: 400px; }
+
+/* 兌換券卡片 */
+.coupon { 
+    background: white; 
+    border-radius: 20px; 
+    padding: 20px; 
+    margin-bottom: 18px;
+    box-shadow: 0 6px 0px rgba(255,182,193,0.3);
+    border: 2px solid #ffb6c1;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.coupon.used { 
+    background-color: #f1f1f1;
+    border-color: #d1d1d1;
+    box-shadow: 0 4px 0px rgba(200,200,200,0.2);
+    opacity: 0.8;
+}
+.info { flex: 1; padding-right: 10px; }
+.info h2 { 
+    margin: 0; 
+    font-size: 1.3rem; 
+    color: #ff85a1; 
+    display: flex; 
+    align-items: center; 
+}
+.info h2::before { content: "🍽️ "; margin-right: 8px; font-size: 1.2rem; }
+.info p { margin: 8px 0 0; font-size: 0.85rem; color: #8a8a8a; line-height: 1.4; }
+.coupon.used .info h2 { color: #8a8a8a; }
+
+button { 
+    background: #ff85a1;
+    color: white; 
+    border: none; 
+    padding: 12px 20px; 
+    border-radius: 50px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    font-size: 0.95rem;
+    box-shadow: 0 4px 0px #e06c86;
+    transition: all 0.1s;
+    flex-shrink: 0;
+}
+button:hover { background-color: #ff9fb5; }
+button:active { 
+    box-shadow: 0 1px 0px #e06c86;
+    transform: translateY(3px);
+}
+
+/* 印章動畫 */
+.stamp {
+    display: none; 
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%) rotate(15deg);
+    width: 70px;
+    height: 70px;
+    border: 3px solid #ffb6c1;
+    border-radius: 50%;
+    color: #ffb6c1;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    line-height: 70px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+    pointer-events: none;
+    font-family: 'Arial Rounded MT Bold', sans-serif;
+    animation: popStamp 0.4s ease;
+}
+.coupon.used .stamp { display: block; }
+.coupon.used button { display: none; }
+
+@keyframes popStamp {
+    0% { transform: translateY(-50%) rotate(15deg) scale(0); }
+    80% { transform: translateY(-50%) rotate(15deg) scale(1.2); }
+    100% { transform: translateY(-50%) rotate(15deg) scale(1); }
+}
+</style>
+</head>
+<body>
+
+<h1>🎀 我的可愛吃饗券 🎀</h1>
+<div class="container" id="coupon-list"></div>
+
+<script>
+const couponCount = 10;
+const listContainer = document.getElementById('coupon-list');
+
+// 從 localStorage 讀取紀錄
+let usedData = JSON.parse(localStorage.getItem('cute_eatticket_records')) || {};
+
+function renderCoupons() {
+    listContainer.innerHTML = '';
+    let remaining = 0;
+    for (let i = 1; i <= couponCount; i++) {
+        const isUsed = usedData[i];
+        if (!isUsed) remaining++;
+        const couponDiv = document.createElement('div');
+        couponDiv.className = `coupon ${isUsed ? 'used' : ''}`;
+        couponDiv.innerHTML = `
+            <div class="info">
+                <h2>吃饗券 #${i}</h2>
+                ${isUsed ? `<p>已於 <b>${isUsed}</b> 兌換</p>` : '<p>美味就在這裡！<br>趕快使用它吧 💕</p>'}
+            </div>
+            <button onclick="redeem(${i})">立即使用 ✨</button>
+            <div class="stamp">已兌換</div>
+        `;
+        listContainer.appendChild(couponDiv);
+    }
+}
+
+function redeem(id) {
+    if (usedData[id]) {
+        alert("這張券已經使用過囉 💦");
+        return;
+    }
+    if (confirm(`💖 確定要使用 吃饗券 #${id} 嗎？💖`)) {
+        const now = new Date();
+        const dateString = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+        usedData[id] = dateString;
+        localStorage.setItem('cute_eatticket_records', JSON.stringify(usedData));
+        renderCoupons();
+    }
+}
+
+// 首次載入
+renderCoupons();
+</script>
+</body>
+</html>
